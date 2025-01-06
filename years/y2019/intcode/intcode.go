@@ -2,6 +2,7 @@ package intcode
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"regexp"
 	"strconv"
@@ -13,6 +14,15 @@ type Intcode struct {
     Code int
     Err error
     input, output []int
+}
+
+func (ic *Intcode) PopOutput() (int, error) {
+    if len(ic.output) == 0 {
+        return -1, errors.New("output stack had no values")
+    }
+    out := ic.output[len(ic.output)-1]
+    ic.output = ic.output[:len(ic.output)-1]
+    return out, nil
 }
 
 func (ic *Intcode) GetLastOutput() int {
@@ -148,6 +158,11 @@ func GetProgram(scanner *bufio.Scanner) Intcode {
 func (ic *Intcode) Run(noun, verb int) int {
     ic.Memory[1], ic.Memory[2] = noun, verb
 
+    return ic.RunWithoutInput()
+}
+
+
+func (ic *Intcode) RunWithoutInput() int {
     for ic.Scan() {
         opcode := ic.Text()
         if opcode == 99 { break }
@@ -172,6 +187,5 @@ func (ic *Intcode) Run(noun, verb int) int {
             os.Exit(1)
         }
     }
-
     return ic.Memory[0]
 }
